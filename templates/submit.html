@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Share Your Story — JobLens{% endblock %}
+
+{% block content %}
+<section class="hero" style="margin-bottom:2rem;">
+  <h1>Share your hiring experience.</h1>
+  <p>Got ghosted after 5 rounds? Rejected by ATS for a "junior" role asking 5 years experience? Tell us. Every story makes the data stronger.</p>
+</section>
+
+{% if errors %}
+<div class="error-box">
+  {% for e in errors %}<p>⚠ {{ e }}</p>{% endfor %}
+</div>
+{% endif %}
+
+<div class="form-card">
+  <form method="POST" action="/submit">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="role_applied">Role you applied for *</label>
+        <input type="text" id="role_applied" name="role_applied"
+               placeholder="e.g. Junior Backend Developer"
+               value="{{ form.get('role_applied', '') }}" required />
+      </div>
+      <div class="form-group">
+        <label for="company_name">Company (optional)</label>
+        <input type="text" id="company_name" name="company_name"
+               placeholder="Leave blank to stay anonymous"
+               value="{{ form.get('company_name', '') }}" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="yoe">Your years of experience</label>
+        <input type="number" id="yoe" name="yoe" min="0" max="40"
+               placeholder="e.g. 1"
+               value="{{ form.get('yoe', '') }}" />
+      </div>
+      <div class="form-group">
+        <label for="outcome">What happened?</label>
+        <select id="outcome" name="outcome">
+          <option value="" {% if not form.get('outcome') %}selected{% endif %}>— select —</option>
+          <option value="ghosted"     {% if form.get('outcome')=='ghosted' %}selected{% endif %}>Ghosted (no response)</option>
+          <option value="ats_reject"  {% if form.get('outcome')=='ats_reject' %}selected{% endif %}>Rejected by ATS</option>
+          <option value="rejected"    {% if form.get('outcome')=='rejected' %}selected{% endif %}>Rejected after interview</option>
+          <option value="interviewed" {% if form.get('outcome')=='interviewed' %}selected{% endif %}>Still interviewing</option>
+          <option value="hired"       {% if form.get('outcome')=='hired' %}selected{% endif %}>Got hired</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="story_type">Problem type</label>
+        <select id="story_type" name="story_type">
+          <option value="" {% if not form.get('story_type') %}selected{% endif %}>— select —</option>
+          <option value="experience_inflation" {% if form.get('story_type')=='experience_inflation' %}selected{% endif %}>Experience inflation (entry role asking 5+ yrs)</option>
+          <option value="title_mismatch"       {% if form.get('story_type')=='title_mismatch' %}selected{% endif %}>Title mismatch (senior duties, junior pay)</option>
+          <option value="ats_reject"           {% if form.get('story_type')=='ats_reject' %}selected{% endif %}>ATS keyword rejection</option>
+          <option value="other"                {% if form.get('story_type')=='other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="submitter_name">Your name (optional)</label>
+        <input type="text" id="submitter_name" name="submitter_name"
+               placeholder="Defaults to Anonymous"
+               value="{{ form.get('submitter_name', '') }}" />
+      </div>
+    </div>
+
+    <div class="form-group full-width">
+      <label for="story">Your story *</label>
+      <textarea id="story" name="story" rows="5"
+                placeholder="Describe what happened. Be specific — role title, experience asked vs what you had, how many rounds, what the rejection reason was...">{{ form.get('story', '') }}</textarea>
+    </div>
+
+    <button type="submit" class="btn-submit">Submit story →</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — JobLens{% endblock %}
+
+{% block content %}
+
+<!-- Stat bar -->
+<div class="stat-bar">
+  <div class="stat-item">
+    <span class="stat-num" id="s-jobs">—</span>
+    <span class="stat-label">Jobs tracked</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num" id="s-skills">—</span>
+    <span class="stat-label">Skills extracted</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num" id="s-stories">—</span>
+    <span class="stat-label">Stories submitted</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num" id="s-inflated">—</span>
+    <span class="stat-label">Inflated junior roles</span>
+  </div>
+</div>
+
+<!-- Section 1: Skills -->
+<section class="dash-section reveal">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Most demanded skills</h2>
+      <p class="section-sub">Across all scraped job posts</p>
+    </div>
+    <div class="chip-group" id="skill-filter">
+      <button class="chip active" data-type="all">All</button>
+      <button class="chip" data-type="language">Languages</button>
+      <button class="chip" data-type="framework">Frameworks</button>
+      <button class="chip" data-type="tool">Tools</button>
+      <button class="chip" data-type="soft">Soft skills</button>
+    </div>
+  </div>
+  <div class="chart-card">
+    <canvas id="skillsChart" height="90"></canvas>
+  </div>
+</section>
+
+<!-- Section 2: Row of 3 -->
+<section class="dash-section reveal">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Market overview</h2>
+      <p class="section-sub">Experience requirements, remote split, and job types</p>
+    </div>
+  </div>
+  <div class="three-col">
+    <div class="chart-card">
+      <p class="card-label">Experience required</p>
+      <canvas id="expChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <p class="card-label">Remote vs on-site</p>
+      <canvas id="remoteChart" height="200"></canvas>
+      <div id="remote-labels" class="donut-labels"></div>
+    </div>
+    <div class="chart-card">
+      <p class="card-label">Top companies hiring</p>
+      <canvas id="companyChart" height="200"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Inflation table -->
+<section class="dash-section reveal">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Experience inflation detector</h2>
+      <p class="section-sub">Junior/entry roles that demand 3+ years — a clear red flag</p>
+    </div>
+    <span class="pill" id="inflation-pill"></span>
+  </div>
+  <div class="chart-card no-pad">
+    <div class="table-toolbar">
+      <input type="text" id="table-search" placeholder="Search role or company..." />
+      <div class="toggle-group">
+        <button class="toggle active" data-filter="all">All</button>
+        <button class="toggle" data-filter="inflated">Inflated only</button>
+        <button class="toggle" data-filter="junior">Junior only</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="inflation-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="title">Role <span class="sort-icon">↕</span></th>
+            <th class="sortable" data-col="company">Company <span class="sort-icon">↕</span></th>
+            <th class="sortable" data-col="exp">Exp required <span class="sort-icon">↕</span></th>
+            <th>Junior?</th>
+            <th class="sortable" data-col="inflated">Inflated? <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="inflation-tbody"></tbody>
+      </table>
+    </div>
+    <div class="table-footer" id="table-footer"></div>
+  </div>
+</section>
+
+<!-- Section 4: Stories -->
+<section class="dash-section reveal">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Community stories</h2>
+      <p class="section-sub">What actually happens when people apply</p>
+    </div>
+    <a href="/submit" class="btn-submit" style="font-size:0.85rem;padding:0.5rem 1rem;">+ Add yours</a>
+  </div>
+  <div class="two-col">
+    <div class="chart-card">
+      <p class="card-label">Outcomes reported</p>
+      <canvas id="outcomeChart" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <p class="card-label">Problem types</p>
+      <canvas id="problemChart" height="220"></canvas>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ACCENT  = '#4f8ef7';
+const ACCENT2 = '#f7724f';
+const GREEN   = '#4fc9a4';
+const YELLOW  = '#f7c94f';
+const PURPLE  = '#a04ff7';
+const BORDER  = '#252931';
+const TEXT    = '#e8eaf0';
+const MUTED   = '#7a7f8e';
+const PALETTE = [ACCENT, GREEN, ACCENT2, YELLOW, PURPLE, '#f74f9e', '#4ff7c9', '#f7a44f', '#4faff7', '#c9f74f'];
+
+Chart.defaults.color = MUTED;
+Chart.defaults.borderColor = BORDER;
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+
+// ── Count-up animation ─────────────────────────────────────────────────────
+function countUp(el, target, duration = 1200) {
+  const start = performance.now();
+  const update = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(ease * target);
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
+// ── Scroll reveal ──────────────────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Capitalize helper ──────────────────────────────────────────────────────
+function cap(s) { return s ? s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—'; }
+
+// ── Fetch & render ─────────────────────────────────────────────────────────
+Promise.all([
+  fetch('/api/status').then(r => r.json()),
+  fetch('/api/analysis/summary').then(r => r.json()),
+  fetch('/api/analysis/companies').then(r => r.json()),
+]).then(([status, summary, companies]) => {
+
+  // Stat bar
+  countUp(document.getElementById('s-jobs'),    status.counts.job_posts);
+  countUp(document.getElementById('s-skills'),  status.counts.skills_extracted);
+  countUp(document.getElementById('s-stories'), status.counts.user_stories);
+  countUp(document.getElementById('s-inflated'),summary.inflation.summary.inflated_junior_roles);
+
+  renderSkills(summary.skills);
+  renderExp(summary.exp_dist);
+  renderRemote(summary.remote);
+  renderCompanies(companies);
+  renderInflation(summary.inflation);
+  renderOutcome(summary.outcomes);
+  renderProblem(summary.outcomes);
+});
+
+// ── Skills ─────────────────────────────────────────────────────────────────
+let skillChart, allSkills;
+
+function renderSkills(data) {
+  allSkills = data;
+  drawSkills('all');
+  document.getElementById('skill-filter').addEventListener('click', e => {
+    if (!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    drawSkills(e.target.dataset.type);
+  });
+}
+
+function drawSkills(type) {
+  const items = type === 'all' ? allSkills.top_skills : (allSkills.by_type[type] || []);
+  const colorMap = { language: ACCENT, framework: GREEN, tool: ACCENT2, soft: YELLOW };
+  if (skillChart) skillChart.destroy();
+  skillChart = new Chart(document.getElementById('skillsChart'), {
+    type: 'bar',
+    data: {
+      labels: items.map(s => s.skill),
+      datasets: [{
+        data: items.map(s => s.demand),
+        backgroundColor: items.map(s => colorMap[s.skill_type] || ACCENT),
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ` ${ctx.parsed.y} job${ctx.parsed.y !== 1 ? 's' : ''}` }
+      }},
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: BORDER }, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+}
+
+// ── Experience distribution ────────────────────────────────────────────────
+function renderExp(data) {
+  const dist = data.distribution;
+  new Chart(document.getElementById('expChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(dist).map(k => k + ' yrs'),
+      datasets: [{ data: Object.values(dist), backgroundColor: PALETTE, borderRadius: 5, borderSkipped: false }]
+    },
+    options: {
+      animation: { duration: 800, easing: 'easeOutBounce' },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: BORDER }, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+}
+
+// ── Remote donut ───────────────────────────────────────────────────────────
+function renderRemote(data) {
+  new Chart(document.getElementById('remoteChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Remote', 'On-site'],
+      datasets: [{ data: [data.remote, data.onsite], backgroundColor: [ACCENT, ACCENT2], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      cutout: '68%',
+      animation: { animateRotate: true, duration: 900 },
+      plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyleWidth: 8 } } }
+    }
+  });
+  document.getElementById('remote-labels').innerHTML =
+    `<span style="color:${ACCENT}">${data.remote} remote</span>&nbsp;·&nbsp;<span style="color:${ACCENT2}">${data.onsite} on-site</span>`;
+}
+
+// ── Companies ──────────────────────────────────────────────────────────────
+function renderCompanies(data) {
+  const items = data.companies.slice(0, 8);
+  new Chart(document.getElementById('companyChart'), {
+    type: 'bar',
+    data: {
+      labels: items.map(c => c.company),
+      datasets: [{ data: items.map(c => c.count), backgroundColor: ACCENT + 'cc', borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      animation: { duration: 700 },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: BORDER }, ticks: { stepSize: 1 } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── Inflation table with search + filter + sort ────────────────────────────
+let inflationData = [];
+let sortState = { col: 'exp', dir: 'desc' };
+let filterMode = 'all';
+
+function renderInflation(data) {
+  inflationData = data.jobs;
+  const s = data.summary;
+  document.getElementById('inflation-pill').textContent =
+    `${s.inflated_junior_roles} of ${s.junior_roles} junior roles inflated (${s.inflation_rate_pct}%)`;
+
+  drawTable();
+
+  document.getElementById('table-search').addEventListener('input', drawTable);
+
+  document.querySelectorAll('.toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterMode = btn.dataset.filter;
+      drawTable();
+    });
+  });
+
+  document.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      sortState.dir = sortState.col === col && sortState.dir === 'asc' ? 'desc' : 'asc';
+      sortState.col = col;
+      drawTable();
+    });
+  });
+}
+
+function drawTable() {
+  const query = document.getElementById('table-search').value.toLowerCase();
+  let rows = inflationData.filter(r => {
+    const matchSearch = !query ||
+      r.title.toLowerCase().includes(query) ||
+      (r.company || '').toLowerCase().includes(query);
+    const matchFilter =
+      filterMode === 'all' ? true :
+      filterMode === 'inflated' ? r.inflated :
+      filterMode === 'junior' ? r.is_junior_role : true;
+    return matchSearch && matchFilter;
+  });
+
+  // Sort
+  rows.sort((a, b) => {
+    let va, vb;
+    if (sortState.col === 'title')    { va = a.title; vb = b.title; }
+    else if (sortState.col === 'company') { va = a.company || ''; vb = b.company || ''; }
+    else if (sortState.col === 'exp') { va = a.exp_min ?? -1; vb = b.exp_min ?? -1; }
+    else if (sortState.col === 'inflated') { va = a.inflated ? 1 : 0; vb = b.inflated ? 1 : 0; }
+    if (typeof va === 'string') return sortState.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return sortState.dir === 'asc' ? va - vb : vb - va;
+  });
+
+  const tbody = document.getElementById('inflation-tbody');
+  tbody.innerHTML = '';
+  rows.forEach(job => {
+    const exp = job.exp_max ? `${job.exp_min}–${job.exp_max} yrs` : job.exp_min !== null ? `${job.exp_min}+ yrs` : '—';
+    const tr = document.createElement('tr');
+    if (job.inflated) tr.classList.add('row-inflated');
+    tr.innerHTML = `
+      <td>${job.title}</td>
+      <td class="text-muted">${job.company || '—'}</td>
+      <td><span class="mono">${exp}</span></td>
+      <td>${job.is_junior_role ? '<span class="tag tag-blue">Yes</span>' : '<span class="tag tag-muted">No</span>'}</td>
+      <td>${job.inflated ? '<span class="tag tag-red">⚠ Inflated</span>' : '<span class="tag tag-green">OK</span>'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('table-footer').textContent =
+    `Showing ${rows.length} of ${inflationData.length} roles`;
+}
+
+// ── Outcomes ───────────────────────────────────────────────────────────────
+function renderOutcome(data) {
+  const items = data.by_outcome;
+  if (!items.length) {
+    document.getElementById('outcomeChart').insertAdjacentHTML('afterend',
+      '<p class="empty-state">No stories yet — <a href="/submit">be the first</a>.</p>');
+    return;
+  }
+  new Chart(document.getElementById('outcomeChart'), {
+    type: 'doughnut',
+    data: {
+      labels: items.map(i => cap(i.outcome)),
+      datasets: [{ data: items.map(i => i.count), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      cutout: '62%',
+      animation: { animateRotate: true, duration: 900 },
+      plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyleWidth: 8 } } }
+    }
+  });
+}
+
+// ── Problem types ──────────────────────────────────────────────────────────
+function renderProblem(data) {
+  const items = data.by_type;
+  if (!items.length) {
+    document.getElementById('problemChart').insertAdjacentHTML('afterend',
+      '<p class="empty-state">No problem types yet.</p>');
+    return;
+  }
+  new Chart(document.getElementById('problemChart'), {
+    type: 'bar',
+    data: {
+      labels: items.map(i => cap(i.story_type)),
+      datasets: [{ data: items.map(i => i.count), backgroundColor: PALETTE, borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      animation: { duration: 700 },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: BORDER }, ticks: { stepSize: 1 } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

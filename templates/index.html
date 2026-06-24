@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}JobLens — Job Market Reality Check{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>The job market, without the spin.</h1>
+  <p>JobLens tracks experience inflation, title mismatches, and ATS rejections — using real data and real stories.</p>
+  <span class="badge" id="live-badge">Loading...</span>
+</section>
+
+<section class="stats" id="stats">
+  <div class="stat-card">
+    <span class="stat-num" id="job-count">—</span>
+    <span class="stat-label">Job posts scraped</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num" id="skill-count">—</span>
+    <span class="stat-label">Skills extracted</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num" id="story-count">—</span>
+    <span class="stat-label">ATS stories submitted</span>
+  </div>
+</section>
+
+<script>
+  fetch('/api/status')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('job-count').textContent   = data.counts.job_posts;
+      document.getElementById('skill-count').textContent = data.counts.skills_extracted;
+      document.getElementById('story-count').textContent = data.counts.user_stories;
+      document.getElementById('live-badge').textContent  =
+        `Live — ${data.counts.job_posts} jobs · ${data.counts.user_stories} stories`;
+    });
+</script>
+{% endblock %}
