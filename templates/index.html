@@ -2,13 +2,21 @@
 {% block title %}JobLens — Job Market Reality Check{% endblock %}
 
 {% block content %}
+
+<!-- Hero -->
 <section class="hero">
-  <h1>The job market, without the spin.</h1>
-  <p>JobLens tracks experience inflation, title mismatches, and ATS rejections — using real data and real stories.</p>
+  <div class="hero-tag">Open source · Built in public</div>
+  <h1>The job market,<br>without the spin.</h1>
+  <p>JobLens tracks experience inflation, title mismatches, and ATS rejections — using real scraped data and real community stories.</p>
+  <div class="hero-actions">
+    <a href="/dashboard" class="btn-submit">View Dashboard</a>
+    <a href="/submit" class="btn-secondary">Share Your Story</a>
+  </div>
   <span class="badge" id="live-badge">Loading...</span>
 </section>
 
-<section class="stats" id="stats">
+<!-- Stats -->
+<section class="stats">
   <div class="stat-card">
     <span class="stat-num" id="job-count">—</span>
     <span class="stat-label">Job posts scraped</span>
@@ -23,14 +31,80 @@
   </div>
 </section>
 
+<!-- Why this exists -->
+<section class="why-section">
+  <h2 class="section-heading">Why this exists</h2>
+  <p class="why-text">
+    "Junior Developer — 0 to 2 years experience" that somehow requires 5 years of React, AWS, Docker, and Kubernetes.
+    We've all seen it. JobLens was built to measure it — not just complain about it.
+    Every job post gets parsed for experience requirements and skill demand. Every story submitted makes the picture clearer.
+  </p>
+</section>
+
+<!-- How it works -->
+<section class="how-section">
+  <h2 class="section-heading">How it works</h2>
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-number">01</div>
+      <h3>Scrape</h3>
+      <p>Job listings are pulled from public sources and parsed for experience requirements, skills, and job type automatically.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">02</div>
+      <h3>Analyse</h3>
+      <p>Experience inflation is detected, top skills are ranked, and patterns across remote vs on-site roles are surfaced.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">03</div>
+      <h3>Collect</h3>
+      <p>Anyone can submit their own ATS rejection or hiring story. The data gets richer with every submission.</p>
+    </div>
+  </div>
+</section>
+
+<!-- What we track -->
+<section class="track-section">
+  <h2 class="section-heading">What we track</h2>
+  <div class="track-grid">
+    <div class="track-card">
+      <div class="track-icon">↑</div>
+      <h3>Experience inflation</h3>
+      <p>Junior and entry-level roles that demand 3+ years — flagged and counted.</p>
+    </div>
+    <div class="track-card">
+      <div class="track-icon">#</div>
+      <h3>Skill demand</h3>
+      <p>Which languages, frameworks, and tools actually appear in job descriptions right now.</p>
+    </div>
+    <div class="track-card">
+      <div class="track-icon">×</div>
+      <h3>ATS rejections</h3>
+      <p>Community-reported stories of being filtered out before a human ever read the resume.</p>
+    </div>
+    <div class="track-card">
+      <div class="track-icon">~</div>
+      <h3>Hiring outcomes</h3>
+      <p>Ghosted, rejected, hired — real outcomes from real applicants, broken down by role and experience.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Been ghosted or ATS-rejected?</h2>
+  <p>Your story takes 2 minutes to submit and makes the data more real for everyone applying right now.</p>
+  <a href="/submit" class="btn-submit">Share your story</a>
+</section>
+
 <script>
   fetch('/api/status')
     .then(r => r.json())
     .then(data => {
-      document.getElementById('job-count').textContent   = data.counts.job_posts;
+      document.getElementById('job-count').textContent  = data.counts.job_posts;
       document.getElementById('skill-count').textContent = data.counts.skills_extracted;
       document.getElementById('story-count').textContent = data.counts.user_stories;
-      document.getElementById('live-badge').textContent  =
+      document.getElementById('live-badge').textContent =
         `Live — ${data.counts.job_posts} jobs · ${data.counts.user_stories} stories`;
     });
 </script>
