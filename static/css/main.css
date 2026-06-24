@@ -2,14 +2,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:       #0d0f14;
-  --surface:  #161920;
-  --surface2: #1c2028;
-  --border:   #252931;
+  --bg:       #0e0b14;
+  --surface:  #171320;
+  --surface2: #1e1828;
+  --border:   #2a2235;
   --accent:   #4f8ef7;
   --accent2:  #f7724f;
   --green:    #4fc9a4;
   --yellow:   #f7c94f;
+  --purple:   #a04ff7;
   --text:     #e8eaf0;
   --muted:    #7a7f8e;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
@@ -37,7 +38,7 @@ header {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: rgba(13,15,20,0.92);
+  background: rgba(14,11,20,0.92);
   backdrop-filter: blur(10px);
   z-index: 100;
 }
@@ -608,5 +609,219 @@ footer {
 @media (max-width: 768px) {
   .steps      { grid-template-columns: 1fr; }
   .track-grid { grid-template-columns: 1fr; }
+  .hero-actions { flex-direction: column; }
+}
+/* ── Purple-black base tweaks ──────────────────────────────── */
+body { background: var(--bg); }
+
+/* ── Hero dot background ───────────────────────────────────── */
+.hero { position: relative; margin-bottom: 0; padding-bottom: 3rem; overflow: hidden; }
+
+.hero-dot-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #2a2235 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-content { position: relative; z-index: 1; }
+
+/* ── Gradient headline ─────────────────────────────────────── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #e8eaf0, #4f8ef7, #a04ff7, #4fc9a4);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 6s ease infinite;
+}
+
+/* ── Marquee ───────────────────────────────────────────────── */
+.marquee-wrap {
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  padding: 0.75rem 0;
+  margin-bottom: 2.5rem;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  gap: 2rem;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-track span {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  padding: 0.2rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.marquee-track span:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Stat card glow on hover ───────────────────────────────── */
+.stat-card {
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.stat-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(79, 142, 247, 0.15);
+  transform: translateY(-2px);
+}
+
+/* ── Step card glow on hover ───────────────────────────────── */
+.step-card {
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.step-card:hover {
+  border-color: var(--purple);
+  box-shadow: 0 0 20px rgba(160, 79, 247, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ── Track card glow on hover ──────────────────────────────── */
+.track-card {
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.track-card:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 20px rgba(79, 201, 164, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ── CTA glow ──────────────────────────────────────────────── */
+.cta-section {
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(79,142,247,0.05) 100%);
+  border-color: rgba(79,142,247,0.25);
+}
+
+/* ── Hero actions ──────────────────────────────────────────── */
+.hero-tag {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+/* ── Why section ───────────────────────────────────────────── */
+.why-section { margin: 3.5rem 0; max-width: 680px; }
+
+.section-heading {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.why-text { color: var(--muted); font-size: 1rem; line-height: 1.8; }
+
+/* ── How it works ──────────────────────────────────────────── */
+.how-section { margin: 3.5rem 0; }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.step-number {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--purple);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.step-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+.step-card p  { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+
+/* ── What we track ─────────────────────────────────────────── */
+.track-section { margin: 3.5rem 0; }
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.track-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.track-icon { font-family: var(--font-mono); font-size: 1.25rem; color: var(--green); margin-bottom: 0.25rem; }
+.track-card h3 { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.track-card p  { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+
+/* ── CTA section ───────────────────────────────────────────── */
+.cta-section {
+  margin: 3.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.cta-section h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.75rem; }
+.cta-section p  { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .steps        { grid-template-columns: 1fr; }
+  .track-grid   { grid-template-columns: 1fr; }
   .hero-actions { flex-direction: column; }
 }
